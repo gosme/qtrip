@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -13,9 +14,12 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import qtriptest.wrappers.Wrappers;
+
 public class AdventurePage {
     private final WebDriver driver;
     private final WebDriverWait wait;
+    private final Wrappers wrappers;
 
     private final By searchInput = By.id("search-adventures");
     private final By adventureCards = By.cssSelector("#data .col, #data [class*='col-']");
@@ -31,12 +35,11 @@ public class AdventurePage {
     public AdventurePage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        this.wrappers = new Wrappers(driver);
     }
 
     public void searchAdventure(String adventureName) {
-        WebElement searchField = wait.until(ExpectedConditions.elementToBeClickable(searchInput));
-        searchField.clear();
-        searchField.sendKeys(adventureName);
+        wrappers.sendKeys(searchInput, adventureName);
     }
 
     public void clearSearchFilter() {
@@ -44,7 +47,7 @@ public class AdventurePage {
     }
 
     public void selectAdventure(String adventureName) {
-        String targetAdventure = adventureName.toLowerCase();
+        String targetAdventure = adventureName.trim().toLowerCase();
 
         for (int attempt = 0; attempt < 3; attempt++) {
             try {
@@ -52,7 +55,9 @@ public class AdventurePage {
                     List<WebElement> cards = driver.findElements(adventureCards);
                     for (WebElement card : cards) {
                         try {
-                            if (card.isDisplayed() && card.getText().toLowerCase().contains(targetAdventure)) {
+                            String cardText = card.getText();
+                            if (card.isDisplayed() && cardText != null
+                                    && cardText.trim().toLowerCase().contains(targetAdventure)) {
                                 return card;
                             }
                         } catch (StaleElementReferenceException e) {
@@ -62,26 +67,31 @@ public class AdventurePage {
                     return null;
                 });
 
-                wait.until(ExpectedConditions.elementToBeClickable(matchingCard)).click();
-                return;
+                if (matchingCard != null && wrappers.click(matchingCard)) {
+                    return;
+                }
             } catch (StaleElementReferenceException e) {
                 if (attempt == 2) {
                     throw e;
                 }
+            } catch (TimeoutException e) {
+                if (attempt == 2) {
+                    throw new NoSuchElementException("Adventure not available on the page: " + adventureName, e);
+                }
             }
         }
 
-        throw new IllegalArgumentException("Adventure not available on the page: " + adventureName);
+        throw new NoSuchElementException("Adventure not available on the page: " + adventureName);
     }
 
     public void selectFilters(String duration) {
         wait.until(ExpectedConditions.visibilityOfElementLocated(durationFilter));
-        new Select(driver.findElement(durationFilter)).selectByVisibleText(duration);
+        new Select(wrappers.findElementWithRetry(durationFilter)).selectByVisibleText(duration);
     }
 
     public void selectCategory(String category) {
         wait.until(ExpectedConditions.visibilityOfElementLocated(categoryFilter));
-        new Select(driver.findElement(categoryFilter)).selectByVisibleText(category);
+        new Select(wrappers.findElementWithRetry(categoryFilter)).selectByVisibleText(category);
     }
 
     public void clearFilters() {
@@ -114,7 +124,7 @@ public class AdventurePage {
                 }
 
                 wait.until(ExpectedConditions.visibilityOfElementLocated(selectLocator));
-                Select select = new Select(driver.findElement(selectLocator));
+                Select select = new Select(wrappers.findElementWithRetry(selectLocator));
                 List<String> optionTexts = readEnabledOptionTexts(select);
 
                 for (String optionTextRaw : optionTexts) {

@@ -71,6 +71,6 @@ public class Testcase04 extends BaseTest {
         adventureDetailsPage.clickReserveButton();
         Assert.assertTrue(adventureDetailsPage.verifyReservationSuccess(), "Reservation was not successful");
 
-        driver.get(qtriptest.DriverSingleton.getBaseUrl());
+        wrappers.navigateToURL(qtriptest.DriverSingleton.getBaseUrl());
     }
 }

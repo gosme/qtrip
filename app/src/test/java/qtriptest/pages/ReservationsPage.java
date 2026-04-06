@@ -4,15 +4,19 @@ import java.time.Duration;
 import java.util.List;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import qtriptest.wrappers.Wrappers;
+
 public class ReservationsPage {
     private final WebDriver driver;
     private final WebDriverWait wait;
+    private final Wrappers wrappers;
 
     private final By reservationRows = By.cssSelector("table tbody tr");
     private final By cancelButtons = By.xpath("//button[contains(.,'Cancel')]");
@@ -20,6 +24,7 @@ public class ReservationsPage {
     public ReservationsPage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        this.wrappers = new Wrappers(driver);
     }
 
     public String getTransactionID() {
@@ -34,11 +39,13 @@ public class ReservationsPage {
 
     public boolean cancelReservation() {
         try {
-            WebElement cancelButton = wait.until(ExpectedConditions.elementToBeClickable(cancelButtons));
-            cancelButton.click();
+            WebElement cancelButton = wrappers.findElementWithRetry(cancelButtons);
+            if (!wrappers.click(cancelButton)) {
+                return false;
+            }
             wait.until(ExpectedConditions.stalenessOf(cancelButton));
             return true;
-        } catch (TimeoutException e) {
+        } catch (TimeoutException | NoSuchElementException e) {
             return false;
         }
     }

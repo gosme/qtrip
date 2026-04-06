@@ -5,13 +5,15 @@ import java.time.Duration;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import qtriptest.wrappers.Wrappers;
 
 public class AdventureDetailsPage {
     private final WebDriver driver;
     private final WebDriverWait wait;
+    private final Wrappers wrappers;
 
     private final By nameInput = By.name("name");
     private final By dateInput = By.name("date");
@@ -23,12 +25,11 @@ public class AdventureDetailsPage {
     public AdventureDetailsPage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        this.wrappers = new Wrappers(driver);
     }
 
     public void enterName(String guestName) {
-        WebElement nameField = wait.until(ExpectedConditions.elementToBeClickable(nameInput));
-        nameField.clear();
-        nameField.sendKeys(guestName);
+        wrappers.sendKeys(nameInput, guestName, true);
     }
 
     public void enterDate(String date) {
@@ -36,19 +37,15 @@ public class AdventureDetailsPage {
     }
 
     public void selectDateOnCalendar(String date) {
-        WebElement dateField = wait.until(ExpectedConditions.elementToBeClickable(dateInput));
-        dateField.clear();
-        dateField.sendKeys(date);
+        wrappers.sendKeysDate(dateInput, date);
     }
 
     public void enterPerson(String count) {
-        WebElement personField = wait.until(ExpectedConditions.elementToBeClickable(personInput));
-        personField.clear();
-        personField.sendKeys(count);
+        wrappers.sendKeys(personInput, count, true);
     }
 
     public void clickReserveButton() {
-        wait.until(ExpectedConditions.elementToBeClickable(reserveButton)).click();
+        wrappers.click(reserveButton);
     }
 
     public boolean verifyReservationSuccess() {
@@ -60,6 +57,6 @@ public class AdventureDetailsPage {
     }
 
     public void clickReservationsButton() {
-        wait.until(ExpectedConditions.elementToBeClickable(reservationButton)).click();
+        wrappers.click(reservationButton);
     }
 }

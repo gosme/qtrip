@@ -14,9 +14,12 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import qtriptest.wrappers.Wrappers;
+
 public class HomePage {
     private final WebDriver driver;
     private final WebDriverWait wait;
+    private final Wrappers wrappers;
 
     private final By banner = By.cssSelector("body");
     private final By citySearchInput = By.id("autocomplete");
@@ -31,6 +34,7 @@ public class HomePage {
     public HomePage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        this.wrappers = new Wrappers(driver);
     }
 
     public String getTitle() {
@@ -51,9 +55,8 @@ public class HomePage {
 
     public void searchCity(String cityName) {
         WebElement searchBox = wait.until(ExpectedConditions.elementToBeClickable(citySearchInput));
-        searchBox.clear();
         searchBox.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
-        typeSlowly(searchBox, cityName);
+        wrappers.sendKeys(citySearchInput, cityName, true);
         waitForAutoCompleteState();
     }
 
@@ -102,62 +105,36 @@ public class HomePage {
 
     public boolean isValidCityDisplayedInAutoComplete(String cityName) {
         try {
-            wait.until(ExpectedConditions.visibilityOfElementLocated(autoCompleteOptions));
-            for (WebElement option : driver.findElements(autoCompleteOptions)) {
-                if (option.getText().trim().equalsIgnoreCase(cityName)) {
-                    return true;
-                }
-            }
+            By cityOption = By.xpath("//a[contains(@href,'/pages/adventures/?city=') and normalize-space()='"
+                    + cityName + "']");
+            return wrappers.findElementWithRetry(cityOption).isDisplayed();
         } catch (TimeoutException e) {
             return false;
+        } catch (NoSuchElementException e) {
+            return false;
         }
-
-        return false;
     }
 
     public void clickOnCity(String cityName) {
-        String targetCity = cityName.trim().toLowerCase();
-
-        for (int attempt = 0; attempt < 3; attempt++) {
-            try {
-                WebElement matchingOption = wait.until(driver -> {
-                    List<WebElement> options = driver.findElements(autoCompleteOptions);
-                    for (WebElement option : options) {
-                        try {
-                            if (option.isDisplayed() && option.getText().trim().equalsIgnoreCase(targetCity)) {
-                                return option;
-                            }
-                        } catch (StaleElementReferenceException e) {
-                            return null;
-                        }
-                    }
-                    return null;
-                });
-
-                wait.until(ExpectedConditions.elementToBeClickable(matchingOption)).click();
-                return;
-            } catch (StaleElementReferenceException e) {
-                if (attempt == 2) {
-                    throw e;
-                }
-            }
+        By cityOption = By.xpath("//a[contains(@href,'/pages/adventures/?city=') and normalize-space()='"
+                + cityName + "']");
+        if (!wrappers.click(cityOption)) {
+            throw new NoSuchElementException("City not found in autocomplete: " + cityName);
         }
-
-        throw new NoSuchElementException("City not found in autocomplete: " + cityName);
     }
 
     public void clickLoginButton() {
         ensureLoggedOutBeforeNavigation();
-        wait.until(ExpectedConditions.elementToBeClickable(loginButton)).click();
+        wrappers.click(loginButton);
     }
 
     public void clickRegisterButton() {
         ensureLoggedOutBeforeNavigation();
-        wait.until(ExpectedConditions.elementToBeClickable(registerButton)).click();
+        wrappers.click(registerButton);
     }
 
     public void clickReservationsButton() {
-        wait.until(ExpectedConditions.elementToBeClickable(reservationsButton)).click();
+        wrappers.click(reservationsButton);
     }
 
     public boolean isUserLoggedIn() {
@@ -185,7 +162,9 @@ public class HomePage {
             return false;
         }
 
-        wait.until(ExpectedConditions.elementToBeClickable(logoutButton)).click();
+        if (!wrappers.click(logoutButton)) {
+            return false;
+        }
         wait.until(ExpectedConditions.invisibilityOfElementLocated(logoutButton));
         return true;
     }
@@ -205,21 +184,4 @@ public class HomePage {
             // Let the caller decide how to assert when neither state is rendered in time.
         }
     }
-
-    private void typeSlowly(WebElement element, String value) {
-        for (char character : value.toCharArray()) {
-            element.sendKeys(String.valueOf(character));
-            sleepBriefly();
-        }
-    }
-
-    private void sleepBriefly() {
-        try {
-            Thread.sleep(120);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Interrupted while typing into city search input", e);
-        }
-    }
-
 }

@@ -8,13 +8,15 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import qtriptest.wrappers.Wrappers;
 
 public class RegisterPage {
     private final WebDriver driver;
     private final WebDriverWait wait;
+    private final Wrappers wrappers;
 
     private final By emailInput = By.id("floatingInput");
     private final By passwordInput = By.xpath(
@@ -29,6 +31,7 @@ public class RegisterPage {
     public RegisterPage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        this.wrappers = new Wrappers(driver);
     }
 
     public String registerUser(String email, String password, String repeatPassword, boolean generateRandomEmail) {
@@ -47,25 +50,19 @@ public class RegisterPage {
     }
 
     public void enterEmail(String email) {
-        WebElement emailField = wait.until(ExpectedConditions.elementToBeClickable(emailInput));
-        emailField.clear();
-        emailField.sendKeys(email);
+        wrappers.sendKeys(emailInput, email);
     }
 
     public void enterPassword(String password) {
-        WebElement passwordField = wait.until(ExpectedConditions.elementToBeClickable(passwordInput));
-        passwordField.clear();
-        passwordField.sendKeys(password);
+        wrappers.sendKeys(passwordInput, password);
     }
 
     public void enterRepeatPassword(String repeatPassword) {
-        WebElement repeatPasswordField = wait.until(ExpectedConditions.elementToBeClickable(confirmPasswordInput));
-        repeatPasswordField.clear();
-        repeatPasswordField.sendKeys(repeatPassword);
+        wrappers.sendKeys(confirmPasswordInput, repeatPassword);
     }
 
     public void clickRegisterButton() {
-        wait.until(ExpectedConditions.elementToBeClickable(registerButton)).click();
+        wrappers.click(registerButton);
     }
 
     public boolean verifyRegistrationSuccess() {

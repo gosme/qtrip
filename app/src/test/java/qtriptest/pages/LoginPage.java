@@ -6,13 +6,15 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import qtriptest.wrappers.Wrappers;
 
 public class LoginPage {
     private final WebDriver driver;
     private final WebDriverWait wait;
+    private final Wrappers wrappers;
 
     private final By emailInput = By.id("floatingInput");
     private final By passwordInput = By.id("floatingPassword");
@@ -21,6 +23,7 @@ public class LoginPage {
     public LoginPage(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        this.wrappers = new Wrappers(driver);
     }
 
     public void loginUser(String email, String password) {
@@ -42,18 +45,14 @@ public class LoginPage {
     }
 
     public void enterEmail(String email) {
-        WebElement emailField = wait.until(ExpectedConditions.elementToBeClickable(emailInput));
-        emailField.clear();
-        emailField.sendKeys(email);
+        wrappers.sendKeys(emailInput, email);
     }
 
     public void enterPassword(String password) {
-        WebElement passwordField = wait.until(ExpectedConditions.elementToBeClickable(passwordInput));
-        passwordField.clear();
-        passwordField.sendKeys(password);
+        wrappers.sendKeys(passwordInput, password);
     }
 
     public void clickLoginButton() {
-        wait.until(ExpectedConditions.elementToBeClickable(loginButton)).click();
+        wrappers.click(loginButton);
     }
 }

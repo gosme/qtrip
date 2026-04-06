@@ -43,6 +43,10 @@ public final class DriverSingleton {
         return driver;
     }
 
+    public static synchronized WebDriver peekDriver() {
+        return driver;
+    }
+
     public static String getBaseUrl() {
         return firstNonBlank(
                 System.getProperty("app.url"),
