@@ -14,7 +14,9 @@ public class Testcase01 extends BaseTest {
             dataProvider = "data-provider",
             dataProviderClass = DP.class,
             groups = { "Login Flow" },
-            priority = 1)
+            priority = 1,
+            enabled = true,
+            description = "Test Case 1: Verify User Registration, Login, and Logout Flow")
     public void TestCase01(String username, String password) {
         HomePage homePage = new HomePage(driver);
 

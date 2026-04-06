@@ -13,17 +13,19 @@ public class Testcase02 extends BaseTest {
             dataProviderClass = DP.class,
             groups = { "Search and Filter flow" },
             priority = 2,
-            enabled = false)
+            enabled = true,
+            description = "Test Case 2: Verify functionality of Search and Filters")
     public void TestCase02(String cityName, String categoryFilter, String durationFilter,
             String expectedFilteredResults, String expectedUnFilteredResults) {
         HomePage homePage = new HomePage(driver);
 
         // Step 1: Navigate to the Home page of QTrip.
         Assert.assertTrue(homePage.getTitle().toLowerCase().contains("qtrip"), "Home page title did not load");
+        Assert.assertTrue(homePage.isPageLoaded(), "Home page was not fully loaded");
 
         // Step 2 and 3: Search for a city that is not present and verify the invalid city message.
         homePage.searchCity("Invalid-City-For-QTrip");
-        Assert.assertTrue(homePage.isInvalidCityMessageDisplayed(), "Invalid city message was not displayed");
+        Assert.assertTrue(homePage.waitForInvalidCityMessage(), "Invalid city message was not displayed");
 
         // Step 4 and 5: Search for a city that is present and verify it appears in autocomplete.
         homePage.searchCity(cityName);

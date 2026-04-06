@@ -20,11 +20,12 @@ public class HomePage {
 
     private final By banner = By.cssSelector("body");
     private final By citySearchInput = By.id("autocomplete");
-    private final By autoCompleteOptions = By.cssSelector(".list-group .list-group-item, [role='option']");
+    private final By autoCompleteOptions = By.xpath("//a[contains(@href,'/pages/adventures/?city=')]");
     private final By adventureCards = By.cssSelector("#data .col, #data [class*='col-']");
     private final By invalidCityMessage = By.xpath("//*[contains(text(),'No City found') or contains(text(),'No Results Found')]");
     private final By loginButton = By.xpath("//a[contains(@href,'/pages/login') or normalize-space()='Login']");
     private final By registerButton = By.xpath("//a[contains(@href,'/pages/register') or normalize-space()='Register']");
+    private final By reservationsButton = By.xpath("//a[contains(@href,'/pages/reservations') or normalize-space()='Reservations' or contains(.,'Reservations')]");
     private final By logoutButton = By.xpath("//nav//div[contains(@class,'nav-link login register') and (normalize-space()='Logout' or contains(.,'Logout'))]");
 
     public HomePage(WebDriver driver) {
@@ -37,11 +38,22 @@ public class HomePage {
         return driver.getTitle();
     }
 
+    public boolean isPageLoaded() {
+        try {
+            return wait.until(ExpectedConditions.and(
+                    ExpectedConditions.presenceOfElementLocated(banner),
+                    ExpectedConditions.visibilityOfElementLocated(citySearchInput),
+                    ExpectedConditions.elementToBeClickable(citySearchInput))) != null;
+        } catch (TimeoutException e) {
+            return false;
+        }
+    }
+
     public void searchCity(String cityName) {
         WebElement searchBox = wait.until(ExpectedConditions.elementToBeClickable(citySearchInput));
         searchBox.clear();
         searchBox.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.DELETE);
-        searchBox.sendKeys(cityName);
+        typeSlowly(searchBox, cityName);
         waitForAutoCompleteState();
     }
 
@@ -59,8 +71,33 @@ public class HomePage {
     }
 
     public boolean isInvalidCityMessageDisplayed() {
-        List<WebElement> messages = driver.findElements(invalidCityMessage);
-        return !messages.isEmpty() && messages.get(0).isDisplayed();
+        try {
+            List<WebElement> messages = driver.findElements(invalidCityMessage);
+            for (WebElement message : messages) {
+                try {
+                    if (message.isDisplayed()) {
+                        return true;
+                    }
+                } catch (StaleElementReferenceException e) {
+                    List<WebElement> refreshedMessages = driver.findElements(invalidCityMessage);
+                    return !refreshedMessages.isEmpty() && refreshedMessages.get(0).isDisplayed();
+                }
+            }
+            return false;
+        } catch (StaleElementReferenceException e) {
+            List<WebElement> refreshedMessages = driver.findElements(invalidCityMessage);
+            return !refreshedMessages.isEmpty() && refreshedMessages.get(0).isDisplayed();
+        }
+    }
+
+    public boolean waitForInvalidCityMessage() {
+        try {
+            return wait.ignoring(StaleElementReferenceException.class)
+                    .until(ExpectedConditions.visibilityOfElementLocated(invalidCityMessage))
+                    .isDisplayed();
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
     public boolean isValidCityDisplayedInAutoComplete(String cityName) {
@@ -79,11 +116,30 @@ public class HomePage {
     }
 
     public void clickOnCity(String cityName) {
-        wait.until(ExpectedConditions.visibilityOfElementLocated(autoCompleteOptions));
-        for (WebElement option : driver.findElements(autoCompleteOptions)) {
-            if (option.getText().trim().equalsIgnoreCase(cityName)) {
-                option.click();
+        String targetCity = cityName.trim().toLowerCase();
+
+        for (int attempt = 0; attempt < 3; attempt++) {
+            try {
+                WebElement matchingOption = wait.until(driver -> {
+                    List<WebElement> options = driver.findElements(autoCompleteOptions);
+                    for (WebElement option : options) {
+                        try {
+                            if (option.isDisplayed() && option.getText().trim().equalsIgnoreCase(targetCity)) {
+                                return option;
+                            }
+                        } catch (StaleElementReferenceException e) {
+                            return null;
+                        }
+                    }
+                    return null;
+                });
+
+                wait.until(ExpectedConditions.elementToBeClickable(matchingOption)).click();
                 return;
+            } catch (StaleElementReferenceException e) {
+                if (attempt == 2) {
+                    throw e;
+                }
             }
         }
 
@@ -98,6 +154,10 @@ public class HomePage {
     public void clickRegisterButton() {
         ensureLoggedOutBeforeNavigation();
         wait.until(ExpectedConditions.elementToBeClickable(registerButton)).click();
+    }
+
+    public void clickReservationsButton() {
+        wait.until(ExpectedConditions.elementToBeClickable(reservationsButton)).click();
     }
 
     public boolean isUserLoggedIn() {
@@ -143,6 +203,22 @@ public class HomePage {
                     ExpectedConditions.visibilityOfElementLocated(invalidCityMessage)));
         } catch (TimeoutException e) {
             // Let the caller decide how to assert when neither state is rendered in time.
+        }
+    }
+
+    private void typeSlowly(WebElement element, String value) {
+        for (char character : value.toCharArray()) {
+            element.sendKeys(String.valueOf(character));
+            sleepBriefly();
+        }
+    }
+
+    private void sleepBriefly() {
+        try {
+            Thread.sleep(120);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while typing into city search input", e);
         }
     }
 

@@ -3,6 +3,8 @@ package qtriptest.pages;
 import java.time.Duration;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -28,9 +30,15 @@ public class LoginPage {
     }
 
     public boolean isPageLoaded() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(emailInput)).isDisplayed()
-                && wait.until(ExpectedConditions.visibilityOfElementLocated(passwordInput)).isDisplayed()
-                && wait.until(ExpectedConditions.visibilityOfElementLocated(loginButton)).isDisplayed();
+        try {
+            return wait.ignoring(StaleElementReferenceException.class)
+                    .until(ExpectedConditions.and(
+                            ExpectedConditions.visibilityOfElementLocated(emailInput),
+                            ExpectedConditions.visibilityOfElementLocated(passwordInput),
+                            ExpectedConditions.visibilityOfElementLocated(loginButton))) != null;
+        } catch (TimeoutException e) {
+            return false;
+        }
     }
 
     public void enterEmail(String email) {

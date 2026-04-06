@@ -17,7 +17,8 @@ public class Testcase03 extends BaseTest {
             dataProviderClass = DP.class,
             groups = { "Booking and Cancellation Flow" },
             priority = 3,
-            enabled = false)
+            enabled = true,
+            description = "Test Case 3: Verify Adventure Booking and Cancellation Flow")
     public void TestCase03(String newUserName, String password, String searchCity, String adventureName,
             String guestName, String date, String count) {
         HomePage homePage = new HomePage(driver);
@@ -39,8 +40,8 @@ public class Testcase03 extends BaseTest {
         homePage.searchCity(searchCity);
         homePage.clickOnCity(searchCity);
         AdventurePage adventurePage = new AdventurePage(driver);
-        adventurePage.searchCity(adventureName);
-        adventurePage.selectCity(adventureName);
+        adventurePage.searchAdventure(adventureName);
+        adventurePage.selectAdventure(adventureName);
 
         AdventureDetailsPage adventureDetailsPage = new AdventureDetailsPage(driver);
 

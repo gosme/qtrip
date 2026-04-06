@@ -17,7 +17,8 @@ public class Testcase04 extends BaseTest {
             dataProviderClass = DP.class,
             groups = { "Reliability Flow" },
             priority = 4,
-            enabled = false)
+            enabled = true,
+            description = "Test Case 4: Verify Reliability of Booking Flow")
     public void TestCase04(String newUserName, String password, String dataset1, String dataset2, String dataset3) {
         HomePage homePage = new HomePage(driver);
 
@@ -38,8 +39,10 @@ public class Testcase04 extends BaseTest {
         createReservationFromDataset(dataset2);
         createReservationFromDataset(dataset3);
 
-        // Step 7 and 8: Open the reservations page and verify all bookings are displayed.
-        driver.get(qtriptest.DriverSingleton.getBaseUrl() + "/pages/reservations/");
+        // Step 7: Click on the reservations page from the navigation bar.
+        homePage.clickReservationsButton();
+
+        // Step 8: Verify that all the bookings are displayed on the reservations page.
         ReservationsPage reservationsPage = new ReservationsPage(driver);
         Assert.assertTrue(reservationsPage.getReservationCount() >= 3,
                 "Expected at least three reservations to be present");
@@ -58,8 +61,8 @@ public class Testcase04 extends BaseTest {
         homePage.clickOnCity(city);
 
         AdventurePage adventurePage = new AdventurePage(driver);
-        adventurePage.searchCity(adventureName);
-        adventurePage.selectCity(adventureName);
+        adventurePage.searchAdventure(adventureName);
+        adventurePage.selectAdventure(adventureName);
 
         AdventureDetailsPage adventureDetailsPage = new AdventureDetailsPage(driver);
         adventureDetailsPage.enterName(guestName);
