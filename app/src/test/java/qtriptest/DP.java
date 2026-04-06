@@ -1,18 +1,44 @@
 package qtriptest;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.testng.annotations.DataProvider;
 
 public class DP {
-    // TODO: use correct annotation to connect the Data Provider with your Test Cases
-    
+    @DataProvider(name = "data-provider")
     public Object[][] dpMethod(Method m) throws IOException {
         int rowIndex = 0;
         int cellIndex = 0;
-        List<List> outputList = new ArrayList<List>();
+        List<List<String>> outputList = new ArrayList<List<String>>();
+
+        Path excelPath = Paths.get("src", "test", "resources", "DatasetsforQTrip.xlsx")
+                .toAbsolutePath();
 
         FileInputStream excelFile = new FileInputStream(new File(
-                "<absolute-path-to-xlsx-file>"));
+                excelPath.toString()));
         Workbook workbook = new XSSFWorkbook(excelFile);
         Sheet selectedSheet = workbook.getSheet(m.getName());
+
+        if (selectedSheet == null) {
+            workbook.close();
+            excelFile.close();
+            throw new IllegalArgumentException("No sheet found for test method: " + m.getName());
+        }
+
         Iterator<Row> iterator = selectedSheet.iterator();
         while (iterator.hasNext()) {
             Row nextRow = iterator.next();
@@ -36,6 +62,7 @@ public class DP {
 
         }
 
+        workbook.close();
         excelFile.close();
 
         String[][] stringArray = outputList.stream().map(u -> u.toArray(new String[0])).toArray(String[][]::new);

@@ -48,3 +48,9 @@ out/
 # .vscode/
 
 .DS_Store
+
+# Ignore chrome and driver binaries
+app/chrome/
+app/chromedriver/
+app/tmp/
+.gradle-user-home/

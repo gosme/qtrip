@@ -16,7 +16,7 @@ application {
 }
 
 dependencies {
-    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.0.0-alpha-1'
+    implementation group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.21.0'
     testImplementation group: 'org.testng', name: 'testng', version: '7.6.0'
 
 
@@ -31,10 +31,13 @@ dependencies {
 }
 
 // Additional config for Crio workspace
-buildDir = '/tmp/external_build'
+buildDir = file("$projectDir/tmp/external_build")
 
 task startScript(type:Exec) {
-    commandLine '../selenium-run.sh'
+    enabled = file('../selenium-run.sh').exists()
+    if (enabled) {
+        commandLine '../selenium-run.sh'
+    }
 }
 
 run.dependsOn startScript
@@ -44,6 +47,7 @@ test.dependsOn startScript
 test {
     useTestNG() {
         useDefaultListeners = true // generates the test report
+        suites "src/test/resources/testng.xml"
     }
 
     afterSuite { desc, result ->
