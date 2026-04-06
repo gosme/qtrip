@@ -10,7 +10,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 public final class DriverSingleton {
-    private static final boolean USE_REMOTE_DRIVER = false;
+    private static final boolean USE_REMOTE_DRIVER = true;
     private static final String DEFAULT_REMOTE_URL = "http://localhost:8082/wd/hub";
     private static final String DEFAULT_APPLICATION_URL = "https://qtripdynamic-qa-frontend.vercel.app";
     private static RemoteWebDriver driver;
