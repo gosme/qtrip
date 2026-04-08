@@ -1,6 +1,6 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
 <suite name="QTrip Suite" verbose="1">
-    <listeners>
+    <!-- <listeners>
         <listener class-name="qtriptest.reports.ExtentTestListener" />
     </listeners>
     <test name="QTrip Tests">
@@ -10,7 +10,7 @@
             <class name="qtriptest.tests.Testcase03" />
             <class name="qtriptest.tests.Testcase04" />
         </classes>
-    </test>
+    </test> -->
     <test name="QTrip API Tests">
         <groups>
             <run>

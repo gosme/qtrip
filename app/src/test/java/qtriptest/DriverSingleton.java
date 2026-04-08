@@ -1,5 +1,6 @@
 package qtriptest;
 
+import java.net.URI;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -70,7 +71,8 @@ public final class DriverSingleton {
 
     private static RemoteWebDriver createDriver(ChromeOptions options) throws MalformedURLException {
         if (USE_REMOTE_DRIVER) {
-            return new RemoteWebDriver(new URL(resolveRemoteUrl()), options);
+            URL remoteUrl = URI.create(resolveRemoteUrl()).toURL();
+            return new RemoteWebDriver(remoteUrl, options);
         }
 
         return new ChromeDriver(options);
