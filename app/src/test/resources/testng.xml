@@ -11,4 +11,17 @@
             <class name="qtriptest.tests.Testcase04" />
         </classes>
     </test>
+    <test name="QTrip API Tests">
+        <groups>
+            <run>
+                <include name="API Tests" />
+            </run>
+        </groups>
+        <classes>
+            <class name="qtriptest.API_tests.testCase_API_01" />
+            <class name="qtriptest.API_tests.testCase_API_02" />
+            <class name="qtriptest.API_tests.testCase_API_03" />
+            <class name="qtriptest.API_tests.testCase_API_04" />
+        </classes>
+    </test>
 </suite>
